@@ -11,11 +11,19 @@ import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", authMiddleware, registerTravel);
-router.get("/", authMiddleware, getTravels);
-router.get("/:id", authMiddleware, getOneTravel);
-router.put("/:id", authMiddleware, updateTravel);
-router.delete("/:id", authMiddleware, deleteTravel);
-router.get("/search/location", authMiddleware, searchTravel);
+// Apply authMiddleware for all routes
+router.use(authMiddleware);
+
+router.post("/", registerTravel);
+router.get("/", getTravels);
+router.get("/:id", getOneTravel);
+router.put("/:id", updateTravel);
+router.delete("/:id", deleteTravel);
+
+// You can create a nested router for search route
+const searchRouter = express.Router();
+searchRouter.get("/location", searchTravel);
+
+router.use("/search", searchRouter);
 
 export default router;
