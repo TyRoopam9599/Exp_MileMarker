@@ -8,8 +8,6 @@ import pdfRouter from "./routes/pdfGenerate.js";
 
 dotenv.config();
 
-connectDB();
-
 const app = express();
 
 app.use(express.json());
@@ -27,4 +25,6 @@ app.use((err, req, res, next) => {
 
 const port = process.env.PORT || 8000;
 
-app.listen(port);
+app.listen(port, () => {
+  connectDB();
+});
