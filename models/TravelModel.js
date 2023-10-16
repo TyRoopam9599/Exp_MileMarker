@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { userModel } from "./UserModel.js";
+import userModel from "./UserModel.js";
 import axios from "axios";
 import moment from "moment-timezone";
 
@@ -75,10 +75,13 @@ travelRecordSchema.pre("save", async function (next) {
 
     this.travelTime = (this.endDate - this.startDate) / (1000 * 60);
     this.Amount = this.distance * this.otherData.fare;
-    next();
+
+    next(); // Continue with the save operation after data calculations
   } catch (error) {
-    next();
+    next(error); // Pass the error to the next middleware
   }
 });
 
-export const TravelRecord = mongoose.model("TravelRecord", travelRecordSchema);
+const TravelRecord = mongoose.model("TravelRecord", travelRecordSchema);
+
+export default TravelRecord;
