@@ -1,18 +1,14 @@
-import { TravelRecord } from "../models/TravelModel.js";
+import TravelRecord from "../models/TravelModel.js";
 
 export const registerTravel = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const travelRecordData = {
-      userId,
-      ...req.body,
-    };
-    const travelRecord = new TravelRecord(travelRecordData);
-    await travelRecord.save();
+    console.log(userId);
+    const travelRecordData = { userId, ...req.body };
+    const travelRecord = await TravelRecord.create(travelRecordData);
     res.status(201).json(travelRecord);
   } catch (error) {
-    res.status(400).json({ message: error.message });
-    next();
+    res.status(400).json({ error: error.message });
   }
 };
 
@@ -20,10 +16,9 @@ export const getTravels = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const travelRecords = await TravelRecord.find({ userId });
-    res.status(200).json(travelRecords); // Change status to 200
+    res.status(200).json(travelRecords);
   } catch (error) {
     res.status(500).json({ error: "Internal server error" });
-    next();
   }
 };
 
@@ -71,7 +66,6 @@ export const searchTravel = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const locationName = req.query.locationName;
-
     const travelRecords = await TravelRecord.find({
       userId,
       $or: [
@@ -79,7 +73,7 @@ export const searchTravel = async (req, res, next) => {
         { endLocationName: { $regex: locationName, $options: "i" } },
       ],
     });
-    res.status(200).json(travelRecords); // Change status to 200
+    res.status(200).json(travelRecords);
   } catch (error) {
     res.status(500).json({ error: `Internal server error, ${error}` });
   }

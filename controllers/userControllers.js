@@ -1,7 +1,6 @@
-import express from "express";
-import { userModel } from "../models/UserModel.js";
+import userModel from "../models/UserModel.js";
 
-export const editProfile = async (req, res, next) => {
+export const editProfile = async (req, res) => {
   try {
     const userProfile = await userModel.findByIdAndUpdate(
       req.params.id,
@@ -9,7 +8,7 @@ export const editProfile = async (req, res, next) => {
       { new: true }
     );
     if (!userProfile) {
-      return res.status(404).json({ error: "Travel record not found" });
+      return res.status(404).json({ error: "User profile not found" });
     }
     res.json(userProfile);
   } catch (error) {

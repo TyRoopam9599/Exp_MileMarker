@@ -1,9 +1,9 @@
-import { TravelRecord } from "../models/TravelModel.js";
-import { userModel } from "../models/UserModel.js";
+import TravelRecord from "../models/TravelModel.js";
+import userModel from "../models/UserModel.js";
 import PDFDocument from "pdfkit";
 import moment from "moment-timezone";
 
-export const pdfControllers = async (req, res, next) => {
+export const pdfControllers = async (req, res) => {
   try {
     const userId = req.user.id;
     const {
@@ -18,7 +18,6 @@ export const pdfControllers = async (req, res, next) => {
     const user = await userModel.findById(userId);
 
     const startDate = moment({ year, month });
-
     const endDate = startDate.clone().endOf("month");
     const travelRecords = await TravelRecord.find({
       userId,
@@ -35,7 +34,6 @@ export const pdfControllers = async (req, res, next) => {
 
     doc.pipe(res);
 
-    let isNewPage = true;
     const tableHeaders = [
       "Date",
       "Time(min)",
@@ -52,11 +50,8 @@ export const pdfControllers = async (req, res, next) => {
     const cellWidth = tableWidth / tableHeaders.length;
     const columnMargin = 0;
     let rowY = doc.y;
+
     const addNewPage = () => {
-      const tableWidth = doc.page.width - 2 * 10;
-      const tableX = (doc.page.width - tableWidth) / 2;
-      const cellWidth = tableWidth / tableHeaders.length;
-      const columnMargin = 0;
       doc
         .font("Helvetica-Bold")
         .fontSize(18)
@@ -75,7 +70,6 @@ export const pdfControllers = async (req, res, next) => {
       doc.moveDown();
 
       const pageWidth = doc.page.width - 2 * 10;
-
       const statementCenterX = pageWidth / 2;
 
       const underlineText = (text, x, y, lineWidth) => {
@@ -90,7 +84,6 @@ export const pdfControllers = async (req, res, next) => {
       underlineText("Travelling Statement", statementCenterX - 30, doc.y, 1.5);
 
       doc.moveDown();
-
       rowY = doc.y;
       doc.font("Helvetica-Bold");
       tableHeaders.forEach((header, index) => {
@@ -100,23 +93,18 @@ export const pdfControllers = async (req, res, next) => {
           align: "center",
         });
       });
-
       doc.moveDown();
     };
 
-    const checkPageOverflow = (spaceRequired, y) => {
-      if (y + spaceRequired > doc.page.height - doc.page.margins.top) {
-        isNewPage = true;
+    const checkPageOverflow = (spaceRequired) => {
+      if (rowY + spaceRequired > doc.page.height - doc.page.margins.top) {
         doc.addPage({ layout: "landscape", size: "letter" });
         addNewPage();
-        isNewPage = false;
       }
     };
-    if (isNewPage) {
-      addNewPage();
-      isNewPage = false;
-    }
-    rowY = doc.y + 10;
+
+    addNewPage();
+
     travelRecords.forEach((record) => {
       doc.font("Helvetica");
       const rowData = [
@@ -130,14 +118,18 @@ export const pdfControllers = async (req, res, next) => {
         record.distance.toString(),
         record.Amount,
       ];
+
       rowY = doc.y + 10;
+
       rowData.forEach((data, index) => {
         const xPosition = tableX + index * cellWidth + index * columnMargin;
         doc.text(data, xPosition, rowY, { width: cellWidth, align: "center" });
       });
-      checkPageOverflow(50, doc.y);
+
+      checkPageOverflow(50);
       doc.moveDown();
     });
+
     doc.end();
     doc.on("finish", () => {
       res.status(200).send({ message: "PDF Created Successfully." });
