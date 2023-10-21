@@ -5,13 +5,14 @@ import userRouter from "./routes/userRouters.js";
 import authRouter from "./routes/authRoutes.js";
 import travelRouter from "./routes/travelRoutes.js";
 import pdfRouter from "./routes/pdfGenerate.js";
+import cors from 'cors' ;
 
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
-
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRouter);
